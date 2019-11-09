@@ -1,6 +1,17 @@
 """ Some data examination """
 import numpy as np
+from matplotlib import cm
 import matplotlib.pyplot as plt
+
+import argparse
+import os
+
+parser = argparse.ArgumentParser(description='Dataset examination')
+parser.add_argument('--datasets', type=str, default='datasets',
+                    help='Where the datasets are stored')
+
+args = parser.parse_args()
+
 
 def plot_rollout():
     """ Plot a rollout """
@@ -8,7 +19,7 @@ def plot_rollout():
     from data.loaders import RolloutSequenceDataset
     dataloader = DataLoader(
         RolloutSequenceDataset(
-            root='datasets/carracing', seq_len=900,
+            root=os.path.join(args.datasets, 'carracing'), seq_len=900,
             transform=lambda x: x, buffer_size=10,
             train=False),
         batch_size=1, shuffle=True)
@@ -28,8 +39,8 @@ def plot_rollout():
         action_seq = data[1].numpy().squeeze()
         next_obs_seq = data[-1].numpy().squeeze()
         for obs, action, next_obs in zip(obs_seq, action_seq, next_obs_seq):
-            monitor_obs.set_data(obs)
-            monitor_next_obs.set_data(next_obs)
+            monitor_obs.set_data(obs.astype(np.uint8))
+            monitor_next_obs.set_data(next_obs.astype(np.uint8))
             monitor_diff.set_data(next_obs - obs)
             print(action)
             plt.pause(.01)
