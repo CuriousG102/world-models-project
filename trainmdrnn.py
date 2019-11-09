@@ -28,7 +28,9 @@ parser.add_argument('--include_reward', action='store_true',
                     help="Add a reward modelisation term to the loss.")
 args = parser.parse_args()
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cuda = torch.cuda.is_available()
+print('CUDA: {}'.format(cuda))
+device = torch.device('cuda' if cuda else 'cpu')
 
 # constants
 BSIZE = 16

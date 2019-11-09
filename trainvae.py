@@ -35,6 +35,7 @@ parser.add_argument('--datasets', type=str, default='datasets',
 
 args = parser.parse_args()
 cuda = torch.cuda.is_available()
+print('CUDA: {}'.format(cuda))
 
 
 torch.manual_seed(123)
