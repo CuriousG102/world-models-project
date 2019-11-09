@@ -29,6 +29,8 @@ parser.add_argument('--noreload', action='store_true',
                     help='Best model is not reloaded if specified')
 parser.add_argument('--nosamples', action='store_true',
                     help='Does not save samples during training if specified')
+parser.add_argument('--datasets', type=str, default='datasets',
+                    help='Where the datasets are stored')
 
 
 args = parser.parse_args()
@@ -55,9 +57,9 @@ transform_test = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-dataset_train = RolloutObservationDataset('datasets/carracing',
+dataset_train = RolloutObservationDataset(join(args.datasets, 'carracing'),
                                           transform_train, train=True)
-dataset_test = RolloutObservationDataset('datasets/carracing',
+dataset_test = RolloutObservationDataset(join(args.datasets, 'carracing'),
                                          transform_test, train=False)
 train_loader = torch.utils.data.DataLoader(
     dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=2)
