@@ -26,9 +26,13 @@ parser.add_argument('--noreload', action='store_true',
                     help="Do not reload if specified.")
 parser.add_argument('--include_reward', action='store_true',
                     help="Add a reward modelisation term to the loss.")
+parser.add_argument('--datasets', type=str, default='datasets',
+                    help='Where the datasets are stored')
 args = parser.parse_args()
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+cuda = torch.cuda.is_available()
+print('CUDA: {}'.format(cuda))
+device = torch.device('cuda' if cuda else 'cpu')
 
 # constants
 BSIZE = 16
@@ -75,10 +79,10 @@ if exists(rnn_file) and not args.noreload:
 transform = transforms.Lambda(
     lambda x: np.transpose(x, (0, 3, 1, 2)) / 255)
 train_loader = DataLoader(
-    RolloutSequenceDataset('datasets/carracing', SEQ_LEN, transform, buffer_size=30),
+    RolloutSequenceDataset(join(args.datasets, 'carracing'), SEQ_LEN, transform, buffer_size=30),
     batch_size=BSIZE, num_workers=8, shuffle=True)
 test_loader = DataLoader(
-    RolloutSequenceDataset('datasets/carracing', SEQ_LEN, transform, train=False, buffer_size=10),
+    RolloutSequenceDataset(join(args.datasets, 'carracing'), SEQ_LEN, transform, train=False, buffer_size=10),
     batch_size=BSIZE, num_workers=8)
 
 def to_latent(obs, next_obs):

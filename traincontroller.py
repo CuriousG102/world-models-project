@@ -82,8 +82,12 @@ def slave_routine(p_queue, r_queue, e_queue, p_index):
     :args p_index: the process index
     """
     # init routine
-    gpu = p_index % torch.cuda.device_count()
-    device = torch.device('cuda:{}'.format(gpu) if torch.cuda.is_available() else 'cpu')
+    cuda_count = torch.cuda.device_count()
+    cuda = torch.cuda.is_available()
+    gpu = p_index % cuda_count if cuda else None
+    cuda_str = 'cuda:{}'.format(gpu)
+    print('CUDA: {0}, {1}'.format(cuda, cuda_str))
+    device = torch.device(cuda_str if cuda else 'cpu')
 
     # redirect streams
     sys.stdout = open(join(tmp_dir, str(getpid()) + '.out'), 'a')
