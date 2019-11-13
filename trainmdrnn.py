@@ -65,7 +65,7 @@ earlystopping = EarlyStopping('min', patience=30)
 
 
 if exists(rnn_file) and not args.noreload:
-    rnn_state = torch.load(rnn_file)
+    rnn_state = torch.load(rnn_file, map_location={'cuda:0': str(device)})
     print("Loading MDRNN at epoch {} "
           "with test error {}".format(
               rnn_state["epoch"], rnn_state["precision"]))
