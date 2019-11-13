@@ -104,10 +104,9 @@ def vae_loss_function(
     # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
     # https://arxiv.org/abs/1312.6114
     # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    kld = torch.sum(
+    kld = (
         -0.5 * torch.sum(
-            1 + 2 * logsigma - mu.pow(2) - (2 * logsigma).exp(), 
-            dim=1))
+            1 + 2 * logsigma - mu.pow(2) - (2 * logsigma).exp()))
     
     reward = torch.sum(
         F.mse_loss(predicted_reward, reward, reduction='none'))
