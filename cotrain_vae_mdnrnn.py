@@ -97,8 +97,7 @@ def vae_loss_function(
     # print('predicted_reward', predicted_reward.shape)
     # print('death', death.shape)
     # print('predicted_death', predicted_death.shape)
-    reconstruction = torch.sum(
-        F.mse_loss(recon_x, x, reduction='none'))
+    reconstruction = F.mse_loss(recon_x, x)
 
     # see Appendix B from VAE paper:
     # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
@@ -107,12 +106,11 @@ def vae_loss_function(
     kld = (
         -0.5 * torch.sum(
             1 + 2 * logsigma - mu.pow(2) - (2 * logsigma).exp()))
+    kld /= np.prod(x.size())
     
-    reward = torch.sum(
-        F.mse_loss(predicted_reward, reward, reduction='none'))
+    reward = F.mse_loss(predicted_reward, reward)
 
-    death = torch.sum(F.binary_cross_entropy_with_logits(
-        predicted_death, death, reduction='none'))
+    death = F.binary_cross_entropy_with_logits(predicted_death, death)
 
     loss = reconstruction + kld + reward + death
 
