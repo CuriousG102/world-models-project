@@ -42,7 +42,7 @@ device = torch.device("cuda" if cuda else "cpu")
 # constants
 BSIZE = 16
 SEQ_LEN = 32
-epochs = 30
+epochs = 200
 
 # Data Loading
 transform = transforms.Lambda(
@@ -313,7 +313,7 @@ for e in range(epochs):
         sample = torch.randn(RED_SIZE, LSIZE).to(device)
         sample = vae.decoder(sample).cpu()
         save_image(sample.view(64, 3, RED_SIZE, RED_SIZE),
-                   join(new_samples_dir, 'sample_' + str(epoch) + '.png'))
+                   join(new_samples_dir, 'sample_' + str(e) + '.png'))
 
 
 
