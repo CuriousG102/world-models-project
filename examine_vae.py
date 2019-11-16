@@ -23,7 +23,6 @@ parser = argparse.ArgumentParser(description='Dataset examination')
 parser.add_argument('--datasets', type=str, default='datasets',
                     help='Where the datasets are stored')
 parser.add_argument('--vae', type=str, help='VAE checkpoint')
-parser.add_argument('--sleep_time', type=float, default=.1)
 
 args = parser.parse_args()
 
