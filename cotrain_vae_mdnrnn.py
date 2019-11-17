@@ -29,6 +29,8 @@ parser.add_argument('--originallogdir', type=str, help='Directory where results 
 parser.add_argument('--logdir', type=str, help='Directory where results are logged')
 parser.add_argument('--datasets', type=str, default='datasets',
                     help='Where the datasets are stored')
+
+parser.add_argument('--test_only', type=bool, default=False)
 args = parser.parse_args()
 
 # PyTorch setup
@@ -283,6 +285,9 @@ if not exists(new_rnn_dir):
 new_samples_dir = join(args.logdir, 'vae', 'samples')
 if not exists(new_samples_dir):
     mkdir(new_samples_dir)
+
+if args.test_only:
+    test(e)
 
 for e in range(epochs):
     train(e)
