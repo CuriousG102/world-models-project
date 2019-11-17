@@ -125,7 +125,10 @@ def vae_loss_function(
         position_death_loss = F.binary_cross_entropy_with_logits(
             position_predicted_death, position_death, reduction='none')
         
-        gamma_decay = GAMMA**torch.arange(position_predicted_reward.size(1))
+        gamma_decay = GAMMA**torch.arange(
+            position_predicted_reward.size(1),
+            device=position_reward_loss.device,
+            dtype=position_reward_loss.dtype)
         gamma_sum = gamma_decay.sum()
 
         position_reward_loss = position_reward_loss * gamma_decay
