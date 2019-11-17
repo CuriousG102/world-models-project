@@ -9,6 +9,7 @@ import os
 parser = argparse.ArgumentParser(description='Dataset examination')
 parser.add_argument('--datasets', type=str, default='datasets',
                     help='Where the datasets are stored')
+parser.add_argument('--example_num', type=int)
 
 args = parser.parse_args()
 
@@ -34,7 +35,9 @@ def plot_rollout():
     plt.subplot(2, 2, 3)
     monitor_diff = plt.imshow(np.zeros((64, 64, 3)))
 
-    for data in dataloader:
+    for i, data in enumerate(dataloader):
+        if i != args.example_num:
+            continue
         obs_seq = data[0].numpy().squeeze()
         action_seq = data[1].numpy().squeeze()
         next_obs_seq = data[-1].numpy().squeeze()
