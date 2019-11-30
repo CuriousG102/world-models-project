@@ -111,7 +111,7 @@ def vae_loss_function(
             1 + 2 * logsigma - mu.pow(2) - (2 * logsigma).exp()))
     kld /= np.prod(x.size())
     
-    reward = F.mse_loss(predicted_reward, reward)
+    reward = F.binary_cross_entropy_with_logits(predicted_reward, reward)
 
     death = F.binary_cross_entropy_with_logits(predicted_death, death)
 
@@ -148,7 +148,7 @@ def mdn_rnn_loss_function(
     mus, sigmas, logpi, rs, ds = mdn_rnn_prediction
     gmm = gmm_loss(latent_next_obs, mus, sigmas, logpi)
     bce = F.binary_cross_entropy_with_logits(ds, terminal)
-    mse = F.mse_loss(rs, reward)
+    mse = F.binary_cross_entropy_with_logits(rs, reward)
     scale = LSIZE + 2
     loss = (gmm + bce + mse) / scale
     return dict(gmm=gmm, bce=bce, mse=mse, loss=loss)
@@ -218,6 +218,7 @@ def data_pass(epoch, train):
     pbar = tqdm(total=len(loader.dataset), desc="Epoch {}".format(epoch))
     for i, data in enumerate(loader):
         obs, action, reward, terminal, next_obs = [arr.to(device) for arr in data]
+        reward = reward.sign()
 
         latent_rep, latent_next_rep = to_latent(obs, next_obs)
         mdn_rnn_prediction = get_mdn_rnn_prediction(
