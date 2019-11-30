@@ -29,6 +29,7 @@ parser.add_argument('--originallogdir', type=str, help='Directory where results 
 parser.add_argument('--logdir', type=str, help='Directory where results are logged')
 parser.add_argument('--datasets', type=str, default='datasets',
                     help='Where the datasets are stored')
+parser.add_argument('--sequence_length', type=int, default=32)
 
 parser.add_argument('--test_only', type=bool, default=False)
 args = parser.parse_args()
@@ -43,7 +44,7 @@ device = torch.device("cuda" if cuda else "cpu")
 
 # constants
 BSIZE = 16
-SEQ_LEN = 32
+SEQ_LEN = args.sequence_length
 epochs = 200
 
 # Data Loading
