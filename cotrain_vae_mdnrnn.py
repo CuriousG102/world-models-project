@@ -218,7 +218,7 @@ def data_pass(epoch, train):
     pbar = tqdm(total=len(loader.dataset), desc="Epoch {}".format(epoch))
     for i, data in enumerate(loader):
         obs, action, reward, terminal, next_obs = [arr.to(device) for arr in data]
-        reward = reward.sign()
+        reward = (reward.sign() == 1).double()
 
         latent_rep, latent_next_rep = to_latent(obs, next_obs)
         mdn_rnn_prediction = get_mdn_rnn_prediction(
