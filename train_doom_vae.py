@@ -122,7 +122,6 @@ def train(epoch):
 def test():
     """ One test epoch """
     model.eval()
-    dataset_test.load_next_buffer()
     test_loss = 0
     with torch.no_grad():
         for i, data in enumerate(test_loader):
