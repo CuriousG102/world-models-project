@@ -8,3 +8,4 @@ frames/
 dock_config.json
 .mypy_cache
 .DS_Store
+_vizdoom.ini
