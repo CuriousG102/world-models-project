@@ -102,6 +102,7 @@ def train(epoch):
     """ One training epoch """
     model.train()
     train_loss = 0
+    denom = 0
     for batch_idx, data in enumerate(train_loader):
         data = torch.Tensor(data).to(device)
         optimizer.zero_grad()
@@ -109,6 +110,7 @@ def train(epoch):
         loss = loss_function(recon_batch, data, mu, logvar)
         loss.backward()
         train_loss += loss.item()
+        denom += len(data)
         optimizer.step()
         if batch_idx % 20 == 0:
             print('Train Epoch: {} [{}]\tLoss: {:.6f}'.format(
@@ -116,20 +118,23 @@ def train(epoch):
                 loss.item() / len(data)))
 
     print('====> Epoch: {} Average loss: {:.4f}'.format(
-        epoch, train_loss / batch_idx + 1))
+        epoch, train_loss / denom))
 
 
 def test():
     """ One test epoch """
     model.eval()
     test_loss = 0
+    denom = 0 
     with torch.no_grad():
         for i, data in enumerate(test_loader):
             data = torch.Tensor(data).to(device)
             recon_batch, mu, logvar = model(data)
             test_loss += loss_function(recon_batch, data, mu, logvar).item()
+            denom += len(data)
+    
 
-    test_loss /= i + 1
+    test_loss /= denom
     print('====> Test set loss: {:.4f}'.format(test_loss))
     return test_loss
 
