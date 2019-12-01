@@ -68,12 +68,12 @@ dataset_train = VariableLengthRolloutSequenceDataset(
     join(args.datasets#, 'doom'
         ),
     transform=lambda x: np.transpose(x, (0, 3, 1, 2)) / 255,
-    seq_len=200, train=True)
+    seq_len=100, train=True)
 dataset_test = VariableLengthRolloutSequenceDataset(
     join(args.datasets#, 'doom'
         ),
     transform=lambda x: np.transpose(x, (0, 3, 1, 2)) / 255,
-    seq_len=200, train=False)
+    seq_len=100, train=False)
 train_loader = torch.utils.data.DataLoader(
     dataset_train, batch_size=args.batch_size, num_workers=2, collate_fn=collation_fn)
 test_loader = torch.utils.data.DataLoader(
@@ -103,7 +103,7 @@ def train(epoch):
     model.train()
     train_loss = 0
     for batch_idx, data in enumerate(train_loader):
-        data = torch.Tensor(data, device=device)
+        data = torch.Tensor(data).to(device)
         optimizer.zero_grad()
         recon_batch, mu, logvar = model(data)
         loss = loss_function(recon_batch, data, mu, logvar)
@@ -126,7 +126,7 @@ def test():
     test_loss = 0
     with torch.no_grad():
         for i, data in enumerate(test_loader):
-            data = data.to(device)
+            data = torch.Tensor(data).to(device)
             recon_batch, mu, logvar = model(data)
             test_loss += loss_function(recon_batch, data, mu, logvar).item()
 
