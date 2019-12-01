@@ -20,7 +20,7 @@ def plot_rollout():
     from data.loaders import VariableLengthRolloutSequenceDataset
     dataloader = DataLoader(
         VariableLengthRolloutSequenceDataset(
-            root=args.datasets, transform=lambda x: x.transpose((0,2,3,1)), 
+            root=args.datasets, transform=lambda x: x, 
             buffer_size=10, seq_len=500, train=False),
         batch_size=1)
 
@@ -42,7 +42,6 @@ def plot_rollout():
             monitor_obs.set_data(obs.astype(np.uint8))
             monitor_next_obs.set_data(next_obs.astype(np.uint8))
             monitor_diff.set_data(next_obs - obs)
-            print(action)
             plt.pause(.01)
         break
 

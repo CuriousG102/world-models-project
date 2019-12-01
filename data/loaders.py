@@ -167,9 +167,8 @@ class VariableLengthRolloutSequenceDataset(torch.utils.data.IterableDataset):
                 for seq_index in range(
                     0, len(rollout['observations']), self._seq_len):
                     obs_data = rollout['observations'][
-                        seq_index:seq_index+self._seq_len+1]
-                    # print(obs_data.shape)
-                    obs_data = self._transform(obs_data.astype(np.float32))
+                        seq_index:seq_index+self._seq_len+1].transpose(0,2,3,1)
+                    obs_data = self._transform(obs_data)
                     obs, next_obs = obs_data[:-1], obs_data[1:]
                     action = rollout['actions'][
                         seq_index+1:seq_index + self._seq_len + 1]
