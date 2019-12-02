@@ -118,6 +118,16 @@ class RolloutSequenceDataset(_RolloutDataset): # pylint: disable=too-few-public-
     def _data_per_sequence(self, data_length):
         return data_length - self._seq_len
 
+def action_mapping(action):
+    """ Transform actions from game space encoding to model encoding"""
+
+    # 0: Hold still ->  0
+    # 1: Move left  -> -1
+    # 2: Move right -> +1
+    action = action.copy()
+    action[action==1] = -1
+    action[action==2] = 1
+    return action
 
 class VariableLengthRolloutSequenceDataset(torch.utils.data.IterableDataset):
     def __init__(self, root, seq_len, transform, buffer_size=200, train=True):
@@ -172,6 +182,7 @@ class VariableLengthRolloutSequenceDataset(torch.utils.data.IterableDataset):
                     obs, next_obs = obs_data[:-1], obs_data[1:]
                     action = rollout['actions'][
                         seq_index+1:seq_index + self._seq_len + 1]
+                    action = action_mapping(action)
                     reward, terminal = [rollout[key][seq_index+1:
                         seq_index + self._seq_len + 1].astype(np.float32)
                         for key in ('rewards', 'terminals')]
