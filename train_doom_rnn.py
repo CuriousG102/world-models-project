@@ -111,9 +111,9 @@ def to_latent(obs, next_obs):
     """
     with torch.no_grad():
         (obs, lengths), (next_obs, _) = [pad_packed_sequence(o) for o in (obs, next_obs,)]
-        max_length = obs.shape[0]
+        max_length, batch_size = obs.shape[:2]
         (obs_mu, obs_logsigma), (next_obs_mu, next_obs_logsigma) = [
-            [y.reshape((max_length, BSIZE, LSIZE)) 
+            [y.reshape((max_length, batch_size, LSIZE)) 
              for y in vae(x.reshape((-1, 3, SIZE, SIZE)))[1:]]
             for x in (obs, next_obs)]
 
