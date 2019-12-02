@@ -16,7 +16,7 @@ from utils.learning import EarlyStopping
 ## WARNING : THIS SHOULD BE REPLACED WITH PYTORCH 0.5
 from utils.learning import ReduceLROnPlateau
 
-from data.loaders import RolloutSequenceDataset
+from data.loaders import VariableLengthRolloutSequenceDataset
 from models.vae import VAE
 from models.mdrnn import MDRNN, gmm_loss
 
@@ -84,18 +84,18 @@ def collation_fn(rollouts):
         for i in range(len(rollout)): 
             rollout_items[i].append(torch.Tensor(rollout[i])) 
     for i in range(len(rollout_items)): 
-        rollout_items[i] = pack_sequence(rollout_items[i]) 
+        rollout_items[i] = pack_sequence(sorted(rollout_items[i], key=len, reverse=True)) 
     return tuple(rollout_items)
 
 # Data Loading
 transform = transforms.Lambda(
     lambda x: x / 255)
 train_loader = DataLoader(
-    RolloutSequenceDataset(join(args.datasets#, 'doom'
+    VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
         ), SEQ_LEN, transform, buffer_size=30),
     batch_size=BSIZE, num_workers=8, collate_fn=collation_fn)
 test_loader = DataLoader(
-    RolloutSequenceDataset(join(args.datasets#, 'doom'
+    VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
         ), SEQ_LEN, transform, train=False, buffer_size=10),
     batch_size=BSIZE, num_workers=8, collate_fn=collation_fn)
 
@@ -110,14 +110,6 @@ def to_latent(obs, next_obs):
         - next_latent_obs: 4D torch tensor (BSIZE, SEQ_LEN, LSIZE)
     """
     with torch.no_grad():
-        # for x in obs:
-        #     print(type(x))
-        #     print(x.shape)
-        #     assert False
-        # obs, next_obs = [
-        #     f.upsample(x.view(-1, 3, SIZE, SIZE), size=RED_SIZE,
-        #                mode='bilinear', align_corners=True)
-        #     for x in (obs, next_obs)]
         (obs, lengths), (next_obs, _) = [pad_packed_sequence(o) for o in (obs, next_obs,)]
         max_length = obs.shape[0]
         (obs_mu, obs_logsigma), (next_obs_mu, next_obs_logsigma) = [
@@ -181,13 +173,11 @@ def data_pass(epoch, train): # pylint: disable=too-many-locals
         mdrnn.eval()
         loader = test_loader
 
-    loader.dataset.load_next_buffer()
-
     cum_loss = 0
     cum_gmm = 0
     cum_bce = 0
 
-    pbar = tqdm(total=len(loader.dataset), desc="Epoch {}".format(epoch))
+    pbar = tqdm(desc="Epoch {}".format(epoch))
     for i, data in enumerate(loader):
         obs, action, reward, terminal, next_obs = [arr.to(device) for arr in data]
 
