@@ -88,15 +88,14 @@ def collation_fn(rollouts):
     return tuple(rollout_items)
 
 # Data Loading
-transform = transforms.Lambda(
-    lambda x: x / 255)
+transform = lambda x: np.transpose(x, (0, 3, 1, 2)) / 255
 train_loader = DataLoader(
     VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
-        ), SEQ_LEN, transform=lambda x: np.transpose(x, (0, 3, 1, 2)) / 255, buffer_size=30),
+        ), SEQ_LEN, transform=transform, buffer_size=30),
     batch_size=BSIZE, num_workers=8, collate_fn=collation_fn)
 test_loader = DataLoader(
     VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
-        ), SEQ_LEN, transform, train=False, buffer_size=10),
+        ), SEQ_LEN, transform=transform, train=False, buffer_size=10),
     batch_size=BSIZE, num_workers=8, collate_fn=collation_fn)
 
 def to_latent(obs, next_obs):
