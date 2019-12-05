@@ -92,7 +92,7 @@ transform = transforms.Lambda(
     lambda x: x / 255)
 train_loader = DataLoader(
     VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
-        ), SEQ_LEN, transform, buffer_size=30),
+        ), SEQ_LEN, transform=lambda x: np.transpose(x, (0, 3, 1, 2)) / 255, buffer_size=30),
     batch_size=BSIZE, num_workers=8, collate_fn=collation_fn)
 test_loader = DataLoader(
     VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
