@@ -25,6 +25,7 @@ parser = argparse.ArgumentParser(description='Dataset examination')
 parser.add_argument('--datasets', type=str, default='datasets',
                     help='Where the datasets are stored')
 parser.add_argument('--vae', type=str, help='VAE checkpoint')
+parser.add_argument('--vae_two', type=str, help='VAE 2 checkpoint')
 parser.add_argument('--example_num', type=int)
 
 args = parser.parse_args()
@@ -36,6 +37,14 @@ print("Loading VAE at epoch {} "
           state['epoch'], state['precision']))
 vae = VAE(3, LSIZE).to(device)
 vae.load_state_dict(state['state_dict'])
+
+assert exists(args.vae_two), "No trained VAE in the originallogdir..."
+state = torch.load(args.vae_two, map_location={'cuda:0': str(device)})
+print("Loading VAE at epoch {} "
+      "with test error {}".format(
+          state['epoch'], state['precision']))
+vae_two = VAE(3, LSIZE).to(device)
+vae_two.load_state_dict(state['state_dict'])
 
 def transform(x):
     return torch.Tensor(
@@ -73,8 +82,9 @@ def plot_rollout():
             monitor_obs.set_data(obs.astype(np.uint8))
             with torch.no_grad():
                 monitor_rec_obs.set_data(np.transpose(vae(transform(obs))[0].squeeze(), (1, 2, 0)))
-            # print(action)
-            print(j)
+                monitor_rec_obs_two.set_data(np.transpose(vae_two(transform(obs))[0].squeeze(), (1, 2, 0)))
+            print(action)
+            # print(j)
             plt.pause(.01)
         break
 
