@@ -29,9 +29,6 @@ parser.add_argument('--originallogdir', type=str, help='Directory where results 
 parser.add_argument('--logdir', type=str, help='Directory where results are logged')
 parser.add_argument('--datasets', type=str, default='datasets',
                     help='Where the datasets are stored')
-parser.add_argument('--sequence_length', type=int, default=32)
-
-parser.add_argument('--test_only', type=bool, default=False)
 args = parser.parse_args()
 
 # PyTorch setup
@@ -44,7 +41,7 @@ device = torch.device("cuda" if cuda else "cpu")
 
 # constants
 BSIZE = 16
-SEQ_LEN = args.sequence_length
+SEQ_LEN = 128
 epochs = 200
 
 # Data Loading
@@ -111,7 +108,7 @@ def vae_loss_function(
             1 + 2 * logsigma - mu.pow(2) - (2 * logsigma).exp()))
     kld /= np.prod(x.size())
     
-    reward = F.binary_cross_entropy_with_logits(predicted_reward, reward)
+    reward = F.mse_loss(predicted_reward, reward)
 
     death = F.binary_cross_entropy_with_logits(predicted_death, death)
 
@@ -148,7 +145,7 @@ def mdn_rnn_loss_function(
     mus, sigmas, logpi, rs, ds = mdn_rnn_prediction
     gmm = gmm_loss(latent_next_obs, mus, sigmas, logpi)
     bce = F.binary_cross_entropy_with_logits(ds, terminal)
-    mse = F.binary_cross_entropy_with_logits(rs, reward)
+    mse = F.mse_loss(rs, reward)
     scale = LSIZE + 2
     loss = (gmm + bce + mse) / scale
     return dict(gmm=gmm, bce=bce, mse=mse, loss=loss)
@@ -218,7 +215,6 @@ def data_pass(epoch, train):
     pbar = tqdm(total=len(loader.dataset), desc="Epoch {}".format(epoch))
     for i, data in enumerate(loader):
         obs, action, reward, terminal, next_obs = [arr.to(device) for arr in data]
-        reward = (reward.sign() == 1).type(reward.dtype)
 
         latent_rep, latent_next_rep = to_latent(obs, next_obs)
         mdn_rnn_prediction = get_mdn_rnn_prediction(
@@ -287,9 +283,6 @@ if not exists(new_rnn_dir):
 new_samples_dir = join(args.logdir, 'vae', 'samples')
 if not exists(new_samples_dir):
     mkdir(new_samples_dir)
-
-if args.test_only:
-    test(0)
 
 for e in range(epochs):
     train(e)

@@ -118,6 +118,77 @@ class RolloutSequenceDataset(_RolloutDataset): # pylint: disable=too-few-public-
     def _data_per_sequence(self, data_length):
         return data_length - self._seq_len
 
+def action_mapping(action):
+    """ Transform actions from game space encoding to model encoding"""
+
+    # 0: Hold still ->  0
+    # 1: Move left  -> -1
+    # 2: Move right -> +1
+    action = action.copy()
+    action[action==1] = -1
+    action[action==2] = 1
+    return action
+
+class VariableLengthRolloutSequenceDataset(torch.utils.data.IterableDataset):
+    def __init__(self, root, seq_len, transform, buffer_size=200, train=True):
+        self._transform = transform
+
+        self._files = sorted(
+            join(root, sd, ssd)
+            for sd in listdir(root) if isdir(join(root, sd))
+            for ssd in listdir(join(root, sd)))
+
+        if train:
+            self._files = self._files[:-200]
+        else:
+            self._files = self._files[-200:]
+
+        self._buffer_size = buffer_size
+        self._seq_len = seq_len
+
+    def __iter__(self):
+        worker_info = torch.utils.data.get_worker_info()
+        if worker_info:
+            per_worker = len(self._files) // worker_info.num_workers
+            buffer_start = worker_info.id * per_worker
+            buffer_end = buffer_start + per_worker
+        else:
+            buffer_start = 0
+            buffer_end = len(self._files)
+
+        buffer_index = buffer_start
+        while buffer_index < buffer_end:
+            buffer_fnames = self._files[
+                    buffer_index:min(buffer_index + self._buffer_size, buffer_end)]
+            buffer_index += self._buffer_size
+            rollouts = []
+            pbar = tqdm(total=len(buffer_fnames),
+                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} {postfix}')
+            pbar.set_description("Loading file buffer ...")
+
+            for f in buffer_fnames:
+                with np.load(f) as data:
+                    rollouts.append(
+                        {k: np.copy(v) for k, v in data.items()})
+                pbar.update(1)
+            pbar.close()
+
+            for rollout in rollouts:
+                for seq_index in range(
+                    0, len(rollout['observations']) - 1, self._seq_len):
+                    obs_data = rollout['observations'][
+                        seq_index:seq_index+self._seq_len+1].transpose(0,2,3,1)
+                    obs_data = self._transform(obs_data)
+                    obs, next_obs = obs_data[:-1], obs_data[1:]
+                    action = rollout['actions'][
+                        seq_index+1:seq_index + self._seq_len + 1]
+                    action = action_mapping(action)
+                    reward, terminal = [rollout[key][seq_index+1:
+                        seq_index + self._seq_len + 1].astype(np.float32)
+                        for key in ('rewards', 'terminals')]
+                    yield obs, action, reward, terminal, next_obs
+
+
 class RolloutObservationDataset(_RolloutDataset): # pylint: disable=too-few-public-methods
     """ Encapsulates rollouts.
 
