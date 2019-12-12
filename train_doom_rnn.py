@@ -35,9 +35,9 @@ device = torch.device('cuda' if cuda else 'cpu')
 
 # constants
 ASIZE = 1
-BSIZE = 16
-SEQ_LEN = 70  # 2 seconds
-epochs = 30
+BSIZE = 32
+SEQ_LEN = 140  # 4 seconds
+epochs = 500
 LSIZE = 64
 RSIZE = 512
 
@@ -92,11 +92,11 @@ transform = lambda x: np.transpose(x, (0, 3, 1, 2)) / 255
 train_loader = DataLoader(
     VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
         ), SEQ_LEN, transform=transform, buffer_size=30),
-    batch_size=BSIZE, num_workers=8, collate_fn=collation_fn)
+    batch_size=BSIZE, num_workers=4, collate_fn=collation_fn)
 test_loader = DataLoader(
     VariableLengthRolloutSequenceDataset(join(args.datasets#, 'doom'
         ), SEQ_LEN, transform=transform, train=False, buffer_size=10),
-    batch_size=BSIZE, num_workers=8, collate_fn=collation_fn)
+    batch_size=BSIZE, num_workers=4, collate_fn=collation_fn)
 
 def to_latent(obs, next_obs):
     """ Transform observations to latent space.

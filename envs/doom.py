@@ -24,7 +24,7 @@ class ViZDoomWrapper(object):
         game.load_config(
             os.path.join(CONFIGURATIONS_DIR, configuration + ".cfg"))
         game.set_screen_resolution(ScreenResolution.RES_160X120)
-        # game.set_window_visible(False)
+        game.set_window_visible(False)
         game.init()
         action_dim = game.get_available_buttons_size()
         action_space = AttrDict()

@@ -328,9 +328,11 @@ if not exists(new_samples_dir):
     mkdir(new_samples_dir)
 
 if args.test_only:
-    test(e)
+    test(0)
 
 for e in range(epochs):
+    if args.test_only:
+        break
     train(e)
     mdn_rnn_test_loss, vae_test_loss = test(e)
     vae_scheduler.step(vae_test_loss)

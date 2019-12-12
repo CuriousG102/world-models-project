@@ -128,7 +128,6 @@ class RolloutGenerator(object):
         i = 0
         while True:
             obs = transform(obs.transpose(1,2,0)).unsqueeze(0).to(self.device)
-            print(obs.shape)
             action, hidden = self.get_action_and_transition(obs, hidden)
             action = action.item()
             if action < .33 and action > -.33: # Don't move.
